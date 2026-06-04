@@ -45,11 +45,6 @@ from ament_index_python.packages import get_package_share_path
 from pathlib import Path
 
 def generate_launch_description():
-    # ---- Set global parameter ----
-    set_sim_time = SetParameter(
-        name='use_sim_time',
-        value=ParameterValue(False, value_type=bool)
-    )
 
     agent = ExecuteProcess(
         cmd=['MicroXRCEAgent', 'serial', '--dev', '/dev/serial0', '-b', '921600'],
@@ -102,7 +97,6 @@ def generate_launch_description():
         package='px4_ros_com',
         executable='px4_odom_converter.py',
         name='odom_converter',
-        parameters=[{'use_sim_time': False}],
         output='screen',
     )
 
@@ -119,7 +113,6 @@ def generate_launch_description():
         ),
         launch_arguments={
             'slam_params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'mapper_params_online_async.yaml'),
-            'use_sim_time': False,
         }.items(),
     )
 
@@ -131,27 +124,26 @@ def generate_launch_description():
 
     # ---- Nav2 Launch ----
 
-    nav_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            str(get_package_share_path('nav2_bringup') / 'launch' / 'navigation_launch.py')
-        ),
-        launch_arguments={
-            'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
-            'use_sim_time': False,
-            'log_level': 'error',
-        }.items(),
-    )
+    # nav_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         str(get_package_share_path('nav2_bringup') / 'launch' / 'navigation_launch.py')
+    #     ),
+    #     launch_arguments={
+    #         'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
+    #         'use_sim_time': False,
+    #         'log_level': 'error',
+    #     }.items(),
+    # )
 
-    foxglove = Node(
-        package='foxglove_bridge',
-        executable='foxglove_bridge',
-        output='log',
-        arguments=['--ros-args', '-p', 'port:=8765'],
-        ros_arguments=['--log-level', 'error']
-    )
+    # foxglove = Node(
+    #     package='foxglove_bridge',
+    #     executable='foxglove_bridge',
+    #     output='log',
+    #     arguments=['--ros-args', '-p', 'port:=8765'],
+    #     ros_arguments=['--log-level', 'error']
+    # )
 
     return LaunchDescription([
-        set_sim_time,
         agent,
         camera_node,
         lidar,
@@ -160,7 +152,7 @@ def generate_launch_description():
         px4_odom_converter_node,
         # slam_launch,
         slam_service,
-        nav_launch,
+        # nav_launch,
         thermal,
-        foxglove,
+        # foxglove,
     ])
