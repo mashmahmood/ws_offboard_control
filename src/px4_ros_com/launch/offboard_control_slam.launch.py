@@ -30,6 +30,15 @@ def generate_launch_description():
         }.items(),
     )
 
+    nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            str(get_package_share_path('nav2_bringup') / 'launch' / 'navigation_launch.py')
+        ),
+        launch_arguments={
+            'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
+            'log_level': 'error',
+        }.items(),
+    )
 
     slam_to_px4 = Node(
         package='px4_ros_com',

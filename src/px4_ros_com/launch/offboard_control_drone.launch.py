@@ -151,7 +151,7 @@ def generate_launch_description():
         px4_odom_converter_node,
         # slam_launch,
         slam_service,
-        nav_launch,
+        # nav_launch,
         thermal,
         foxglove,
     ])
