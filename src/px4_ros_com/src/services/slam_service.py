@@ -30,7 +30,6 @@ class NodeManager(Node):
                     "ros2", "launch", 
                     slam_toolbox_launch,
                     f"slam_params_file:={custom_params_file}",
-                    "use_sim_time:=True"
                 ]
                 
                 # Execute the launch command in the background
