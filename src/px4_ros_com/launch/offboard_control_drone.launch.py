@@ -130,18 +130,17 @@ def generate_launch_description():
         ),
         launch_arguments={
             'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
-            'use_sim_time': False,
             'log_level': 'error',
         }.items(),
     )
 
-    # foxglove = Node(
-    #     package='foxglove_bridge',
-    #     executable='foxglove_bridge',
-    #     output='log',
-    #     arguments=['--ros-args', '-p', 'port:=8765'],
-    #     ros_arguments=['--log-level', 'error']
-    # )
+    foxglove = Node(
+        package='foxglove_bridge',
+        executable='foxglove_bridge',
+        output='log',
+        arguments=['--ros-args', '-p', 'port:=8765'],
+        ros_arguments=['--log-level', 'error']
+    )
 
     return LaunchDescription([
         agent,
@@ -154,5 +153,5 @@ def generate_launch_description():
         slam_service,
         nav_launch,
         thermal,
-        # foxglove,
+        foxglove,
     ])
