@@ -142,11 +142,12 @@ def generate_launch_description():
         }.items(),
     )
 
-    foxglove = IncludeLaunchDescription(
-        XMLLaunchDescriptionSource(str(get_package_share_path('foxglove_bridge') / 'launch' / 'foxglove_bridge_launch.xml')),
-        launch_arguments={
-            'port': '8765'
-        }.items()
+    foxglove = Node(
+        package='foxglove_bridge',
+        executable='foxglove_bridge',
+        output='log',
+        arguments=['--ros-args', '-p', 'port:=8765'],
+        ros_arguments=['--log-level', 'error']
     )
 
     return LaunchDescription([
