@@ -36,8 +36,9 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node, SetParameter
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.actions import ExecuteProcess, IncludeLaunchDescription
+from launch.actions import ExecuteProcess, IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 
 from ament_index_python.packages import get_package_share_path
 
@@ -64,17 +65,16 @@ def generate_launch_description():
     	executable='parameter_bridge',
     	arguments=[
     	    # LaserScan bridge
-    	    '/world/turtle_world/model/x500_lidar_2d_0/link/lidar_link/sensor/lidar_2d_v2/scan'
-    	    '@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+    	    # '/world/turtle_world/model/x500_lidar_2d_0/link/lidar_link/sensor/lidar_2d_v2/scan'
+    	    '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
     	    
     	    # Clock bridge (ADD THIS)
     	    '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',],
-    	    
-	remappings=[('/world/turtle_world/model/x500_lidar_2d_0/link/lidar_link/sensor/lidar_2d_v2/scan', '/scan_raw')],
-	output='screen'
+	# remappings=[('/world/turtle_world/model/x500_lidar_2d_0/link/lidar_link/sensor/lidar_2d_v2/scan', '/scan_raw')],
+        output='screen',
     )
 
-    urdf_sim = Node(
+    urdf = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         arguments=[str(get_package_share_path('x500_description') / 'urdf' / 'x500_tf.urdf')],
@@ -87,14 +87,14 @@ def generate_launch_description():
         name='odom_converter',
         parameters=[{'use_sim_time': True}]
     )
-    scan_frame_fixer_node = Node(
-        package='px4_ros_com',
-        executable='scan_frame_fixer.py',
-        name='scan_frame_fixer',
-        parameters=[{'use_sim_time': True}]
-    )
+    # scan_frame_fixer_node = Node(
+    #     package='px4_ros_com',
+    #     executable='scan_frame_fixer.py',
+    #     name='scan_frame_fixer',
+    #     parameters=[{'use_sim_time': True}]
+    # )
 
-        # ---~- SLAM Toolbox Launch ----
+    # ---~- SLAM Toolbox Launch ----
     slam_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             str(get_package_share_path('slam_toolbox') / 'launch' / 'online_async_launch.py')
@@ -105,6 +105,13 @@ def generate_launch_description():
         }.items(),
     )
 
+
+    slam_service = Node(
+        package='px4_ros_com',
+        executable='slam_service.py',
+        output='screen',
+    )
+
     # ---- Nav2 Launch ----
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -113,17 +120,40 @@ def generate_launch_description():
         launch_arguments={
             'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
             'use_sim_time': 'true',
-        }.items()
+            'log_level': 'error',
+        }.items(),
     )    
+
+
+    foxglove = Node(
+        package='foxglove_bridge',
+        executable='foxglove_bridge',
+        output='log',
+        arguments=['--ros-args', '-p', 'port:=8765'],
+        ros_arguments=['--log-level', 'error']
+    )
+    # foxglove = Node(
+    #     package='foxglove_bridge',
+    #     executable='foxglove_bridge_node',
+    #     name='foxglove_bridge',
+    #     # arguments=['--ros-args', '--log-level', 'error'],
+    #     output='log',
+    #     parameters=[{
+    #         'port': 8765,  # Replace with youxr desired custom port
+    #         # 'address': '0.0.0.0' # Allows connections outside localhost
+    #     }]
+    # )
 
     return LaunchDescription([
         set_sim_time,
         processes_node,
         positional_control_node,
-        urdf_sim,
+        urdf,
         px4_odom_converter_node,
-        scan_frame_fixer_node,
+        # scan_frame_fixer_node,
         gazebo_to_ros_node,
         # slam_launch,
-        # nav_launch,
+        slam_service,
+        nav_launch,
+        foxglove,
     ])

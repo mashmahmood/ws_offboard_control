@@ -128,6 +128,7 @@ install(PROGRAMS
   src/offboard_control/px4_odom_converter.py
   src/offboard_control/scan_frame_fixer.py
   src/offboard_control/slam_to_px4.py
+  src/services/slam_service.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -10,12 +10,12 @@
 
   <link name="base_footprint"/>
   
-  <link name="lidar_link"/>
+  <link name="laser"/>
   
   <joint name="LidarJoint" type="fixed">
     <parent link="base_link"/>
-    <child link="lidar_link"/>
-    <origin xyz="0.1 0 0.26" rpy="0 0 0"/>
+    <child link="laser"/>
+    <origin xyz="0 0 0.26" rpy="0 0 0"/>
   </joint>
 
 </robot>

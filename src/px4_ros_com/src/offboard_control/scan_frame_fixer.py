@@ -17,7 +17,7 @@ class ScanFrameFixer(Node):
         self.get_logger().info('Frame renamed.')
 
     def cb(self, msg):
-        msg.header.frame_id = 'lidar_link'
+        msg.header.frame_id = 'laser'
         self.pub.publish(msg)
 
 def main():
