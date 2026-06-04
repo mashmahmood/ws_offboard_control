@@ -124,16 +124,16 @@ def generate_launch_description():
 
     # ---- Nav2 Launch ----
 
-    # nav_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         str(get_package_share_path('nav2_bringup') / 'launch' / 'navigation_launch.py')
-    #     ),
-    #     launch_arguments={
-    #         'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
-    #         'use_sim_time': False,
-    #         'log_level': 'error',
-    #     }.items(),
-    # )
+    nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            str(get_package_share_path('nav2_bringup') / 'launch' / 'navigation_launch.py')
+        ),
+        launch_arguments={
+            'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
+            'use_sim_time': False,
+            'log_level': 'error',
+        }.items(),
+    )
 
     # foxglove = Node(
     #     package='foxglove_bridge',
@@ -152,7 +152,7 @@ def generate_launch_description():
         px4_odom_converter_node,
         # slam_launch,
         slam_service,
-        # nav_launch,
+        nav_launch,
         thermal,
         # foxglove,
     ])
