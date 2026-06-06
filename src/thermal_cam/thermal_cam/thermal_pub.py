@@ -27,7 +27,7 @@ class ThermalPublisher(Node):
         self.bridge = CvBridge()
 
         # Stable I2C
-        i2c = busio.I2C(board.SCL, board.SDA, frequency=1000000)
+        i2c = busio.I2C(board.SCL, board.SDA)
 
         self.mlx = adafruit_mlx90640.MLX90640(i2c)
         self.mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_2_HZ
