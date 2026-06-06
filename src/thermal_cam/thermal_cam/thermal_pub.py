@@ -83,7 +83,7 @@ class ThermalPublisher(Node):
         # -------------------------
         # Calculate & Publish Max Temp Overlay
         # -------------------------
-        max_temp = str(np.max(temp_array))
+        max_temp = "Max Temp: " + str(np.max(temp_array)) + "°C"
         
 
         # Publish the text overlay

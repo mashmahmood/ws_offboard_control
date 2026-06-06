@@ -28,10 +28,10 @@ def generate_launch_description():
         name='string_to_overlay_text_1',
         output='screen',
         parameters=[
-            {"string_topic": "chatter"},
+            {"string_topic": "thermal/max_temp"},
             {"fg_color": "b"}, # colors can be: r,g,b,w,k,p,y (red,green,blue,white,black,pink,yellow)
         ],
-    ),
+    )
     # ---- Keyboard Control Node ----
     control_keyboard_node = Node(
         package='px4_ros_com',
