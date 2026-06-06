@@ -90,13 +90,13 @@ class ThermalPublisher(Node):
         overlay_msg = OverlayText()
         overlay_msg.text = f"Max Temp: {max_temp:.1f}°C"
         
-        # Optional: Set baseline styling (can also be configured inside RViz display options)
-        overlay_msg.text_size = 14.0
-        overlay_msg.line_width = 2
-        overlay_msg.fg_color.r = 1.0  # Red text
-        overlay_msg.fg_color.g = 0.2
-        overlay_msg.fg_color.b = 0.2
-        overlay_msg.fg_color.a = 1.0  # Fully opaque
+        # # Optional: Set baseline styling (can also be configured inside RViz display options)
+        # overlay_msg.text_size = 14.0
+        # overlay_msg.line_width = 2
+        # overlay_msg.fg_color.r = 1.0  # Red text
+        # overlay_msg.fg_color.g = 0.2
+        # overlay_msg.fg_color.b = 0.2
+        # overlay_msg.fg_color.a = 1.0  # Fully opaque
         
         # Publish the text overlay
         self.max_temp_pub.publish(overlay_msg)
