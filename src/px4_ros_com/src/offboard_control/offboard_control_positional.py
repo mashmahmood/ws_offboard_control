@@ -296,7 +296,7 @@ class OffboardControl(Node):
         # z = float('nan')
         msg.position = [x, y, z]
 
-        msg.velocity = [float('nan'), float('nan'), -self.takeoff_velocity]
+        msg.velocity = [0.0, 0.0, -self.takeoff_velocity]
         msg.acceleration = [float('nan'), float('nan'), float('nan')]
         msg.yaw = float('nan')
         msg.yawspeed = float('nan')
@@ -324,7 +324,7 @@ class OffboardControl(Node):
 
         if not self.stabilized:
             msg.position = [self.takeoff_position_xy[0], self.takeoff_position_xy[1], -self.takeoff_height]
-            msg.velocity = [float('nan'), float('nan'), float('nan')]
+            msg.velocity = [0.0, 0.0, float('nan')]
             msg.yawspeed = float('nan')
         else:
             if (velocity_world_x ** 2) + (velocity_world_y ** 2) > 0.01:
