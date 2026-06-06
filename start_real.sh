@@ -15,8 +15,7 @@ tmux split-window -v -t $SESSION:0.1
 
 # Pane 0: Offboard control
 tmux send-keys -t $SESSION:0.0 \
-"ssh firedrone@10.42.0.1 'source ~/ws_offboard_control/install/setup.bash && \ 
-ros2 launch px4_ros_com offboard_control_drone.launch.py'" C-m
+"ssh -t firedrone@10.42.0.1 'bash -i -c \"source /opt/ros/humble/setup.bash && source ~/ws_offboard_control/install/setup.bash && ros2 launch px4_ros_com offboard_control_drone.launch.py\"'" C-m
 
 sleep 10
 
