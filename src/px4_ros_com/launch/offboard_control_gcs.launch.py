@@ -22,6 +22,16 @@ def generate_launch_description():
         output='screen',
     )
 
+    temp_node = Node(
+        package='rviz_2d_overlay_plugins',
+        executable='string_to_overlay_text',
+        name='string_to_overlay_text_1',
+        output='screen',
+        parameters=[
+            {"string_topic": "chatter"},
+            {"fg_color": "b"}, # colors can be: r,g,b,w,k,p,y (red,green,blue,white,black,pink,yellow)
+        ],
+    ),
     # ---- Keyboard Control Node ----
     control_keyboard_node = Node(
         package='px4_ros_com',
@@ -32,5 +42,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         rviz_node,
+        temp_node,
         # control_keyboard_node,
     ])

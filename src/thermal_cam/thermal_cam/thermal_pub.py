@@ -4,14 +4,13 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
 # Import the specific overlay message type
-from rviz_2d_overlay_msgs.msg import OverlayText
 
 import board
 import busio
 import adafruit_mlx90640
 import numpy as np
 import cv2
-
+from std_msgs.msg import String
 
 class ThermalPublisher(Node):
 
@@ -22,7 +21,7 @@ class ThermalPublisher(Node):
         self.rgb_pub = self.create_publisher(Image, 'thermal/rgb', 10)
         
         # 1. Create the overlay publisher
-        self.max_temp_pub = self.create_publisher(OverlayText, 'thermal/max_temp', 10)
+        self.max_temp_pub = self.create_publisher(String, 'thermal/max_temp', 10)
 
         self.bridge = CvBridge()
 
@@ -84,24 +83,11 @@ class ThermalPublisher(Node):
         # -------------------------
         # Calculate & Publish Max Temp Overlay
         # -------------------------
-        max_temp = np.max(temp_array)
+        max_temp = str(np.max(temp_array))
         
-        # 2. Build the OverlayText structure
-        overlay_msg = OverlayText()
-        overlay_msg.text = f"Max Temp: C"
-        
-        # # Optional: Set baseline styling (can also be configured inside RViz display options)
-        # overlay_msg.text_size = 14.0
-        # overlay_msg.line_width = 2
-        # overlay_msg.fg_color.r = 1.0  # Red text
-        # overlay_msg.fg_color.g = 0.2
-        # overlay_msg.fg_color.b = 0.2
-        # overlay_msg.fg_color.a = 1.0  # Fully opaque
-        overlay_msg.width = 400
-        overlay_msg.height = 400
 
         # Publish the text overlay
-        self.max_temp_pub.publish(overlay_msg)
+        self.max_temp_pub.publish(max_temp)
 
 
 def main(args=None):
