@@ -7,7 +7,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 from px4_msgs.msg import OffboardControlMode, TrajectorySetpoint, VehicleCommand, VehicleLocalPosition, VehicleStatus, VehicleAttitude, VehicleLandDetected
 from geometry_msgs.msg import Twist, Vector3
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float64
 
 import numpy as np
 from math import pi
@@ -68,6 +68,13 @@ class OffboardControl(Node):
             self.state_offboard,
             qos_profile)
         
+        self.takeoff_height_subscriber = self.create_subscription(
+            Float64,
+            '/takeoff_height',
+            self.takeoff_height_callback,
+            qos_profile
+        )
+        
         self.attitude_subscriber = self.create_subscription(
             VehicleAttitude,
             '/fmu/out/vehicle_attitude',
@@ -122,6 +129,7 @@ class OffboardControl(Node):
         self.offboard_setpoint_counter = 0
         
         self.takeoff_completed = False
+        self.set_takeoff_height = -1.0
         self.takeoff_time = 0.0
 
         # save the last position of landing
@@ -135,6 +143,10 @@ class OffboardControl(Node):
         self.last_state = self.current_state
         self.start_time = self.get_clock().now().nanoseconds / 1e9
 
+
+    def takeoff_height_callback(self, msg):
+        self.set_takeoff_height = msg.data
+        self.get_logger().info(f"Received takeoff height: {self.set_takeoff_height}")
 
     def arm_message_callback(self, msg):
         if (msg.data != self.arm_message):
@@ -334,9 +346,16 @@ class OffboardControl(Node):
             msg.position = [self.last_set_position.x+velocity_world_x, 
                             self.last_set_position.y+velocity_world_y, 
                             self.last_set_position.z+velocity_world_z]
+            
+
+
             msg.velocity = [velocity_world_x, velocity_world_y, velocity_world_z]
             msg.yawspeed = self.yaw
 
+
+        # valid lock in z position, no matter what
+        if self.set_takeoff_height > 0:
+            msg.position[2] = -self.set_takeoff_height
 
         msg.acceleration = [float('nan'), float('nan'), float('nan')]
         msg.yaw = float('nan')
