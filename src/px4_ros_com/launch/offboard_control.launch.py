@@ -125,13 +125,13 @@ def generate_launch_description():
     )    
 
 
-    foxglove = Node(
-        package='foxglove_bridge',
-        executable='foxglove_bridge',
-        output='log',
-        arguments=['--ros-args', '-p', 'port:=8765'],
-        ros_arguments=['--log-level', 'error']
-    )
+    # foxglove = Node(
+    #     package='foxglove_bridge',
+    #     executable='foxglove_bridge',
+    #     output='log',
+    #     arguments=['--ros-args', '-p', 'port:=8765'],
+    #     ros_arguments=['--log-level', 'error']
+    # )
     # foxglove = Node(
     #     package='foxglove_bridge',
     #     executable='foxglove_bridge_node',
@@ -155,5 +155,5 @@ def generate_launch_description():
         # slam_launch,
         slam_service,
         nav_launch,
-        foxglove,
+        #foxglove,
     ])

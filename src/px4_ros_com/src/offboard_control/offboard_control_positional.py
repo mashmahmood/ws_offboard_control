@@ -82,23 +82,58 @@ class OffboardControl(Node):
         
 
         # Initialize variables
+        self.set_parameters()
+        self.initialize_parameters()
+
+
+        # Create a timer to publish control commands
+        self.timer = self.create_timer(0.1, self.timer_callback)
+
+    
+    def set_parameters(self):
         self.flightCheck = False
         self.failsafe = False
 
         self.absolute_takeoff_height = 1.0
         self.takeoff_velocity = 0.7
-        self.initialize_parameters()
 
-        self.velocity = Vector3(x=0.0, y=0.0, z=0.0)
-        
+        self.vehicle_local_position = VehicleLocalPosition()    # reference position (from px4)
+        self.vehicle_status = VehicleStatus()
+
+        self.last_set_position = Vector3(x=0.0, y=0.0, z=0.0)   # target position
 
         self.keyboard_velocity = Vector3(x=0.0, y=0.0, z=0.0)
         self.nav2_velocity = Vector3(x=0.0, y=0.0, z=0.0)
+        self.velocity = Vector3(x=0.0, y=0.0, z=0.0) # total velocity
+
         self.yaw = 0.0  #yaw rate value we send as command
         self.trueYaw = 0.0  #current yaw value of drone
 
-        # Create a timer to publish control commands
-        self.timer = self.create_timer(0.1, self.timer_callback)
+
+    def initialize_parameters(self):
+        self.offboard_setpoint_counter = 0
+        
+        self.nav_state = VehicleStatus.NAVIGATION_STATE_MAX
+        self.arm_state = VehicleStatus.ARMING_STATE_ARMED
+        
+        self.offboard_mode = False
+        self.arm_message = False
+        self.landed = True
+        self.offboard_setpoint_counter = 0
+        
+        self.takeoff_completed = False
+        self.takeoff_time = 0.0
+
+        # save the last position of landing
+        self.takeoff_position_xy = [self.vehicle_local_position.x, self.vehicle_local_position.y]
+        self.takeoff_height = self.absolute_takeoff_height + (-self.vehicle_local_position.z)  # meters
+        
+        self.stabilize_time = 3.0
+        self.stabilized = False
+
+        self.current_state = "IDLE"
+        self.last_state = self.current_state
+        self.start_time = self.get_clock().now().nanoseconds / 1e9
 
 
     def arm_message_callback(self, msg):
@@ -115,31 +150,6 @@ class OffboardControl(Node):
         else:
             self.current_state = "ARMING"
             self.arm_message = msg.data
-    
-    def initialize_parameters(self):
-        self.offboard_setpoint_counter = 0
-        self.vehicle_local_position = VehicleLocalPosition()
-        self.vehicle_status = VehicleStatus()
-        
-        self.nav_state = VehicleStatus.NAVIGATION_STATE_MAX
-        self.arm_state = VehicleStatus.ARMING_STATE_ARMED
-        
-        self.offboard_mode = False
-        self.arm_message = False
-        self.landed = True
-        self.offboard_setpoint_counter = 0
-        
-        
-        self.takeoff_completed = False
-        self.takeoff_time = 0.0
-        self.takeoff_height = self.absolute_takeoff_height + (-self.vehicle_local_position.z)  # meters
-        self.stabilize_time = 3.0
-        self.stabilized = False
-        
-
-        self.current_state = "IDLE"
-        self.last_state = self.current_state
-        self.start_time = self.get_clock().now().nanoseconds / 1e9
 
     def land_message_callback(self, msg):
         #self.get_logger().info(f"Landed: {msg.landed}")
@@ -195,9 +205,8 @@ class OffboardControl(Node):
         self.keyboard_velocity.z = -msg.linear.z
         # A conversion for angular z is done in the attitude_callback function(it's the '-' in front of self.trueYaw)
         self.yaw = msg.angular.z
-        #print("X:",msg.linear.x, "   Y:",msg.linear.y, "   Z:",msg.linear.z, "   Yaw:",msg.angular.z)
 
-    #receives Twist commands from Nav2 and converts ENU -> FRD
+    #receives Twist commands from Nav2 and converts ENU -> FRD (NED -> FLU?)
     def offboard_velocity_callback(self, msg):
         #implements NED -> FLU Transformation
         # X (FLU) is -Y (NED)
@@ -266,8 +275,8 @@ class OffboardControl(Node):
 
         msg = TrajectorySetpoint()
 
-        x = self.vehicle_local_position.x
-        y = self.vehicle_local_position.y
+        x = self.takeoff_position_xy[0]
+        y = self.takeoff_position_xy[1]
         z = -self.takeoff_height
 
         # x = float('nan')
@@ -275,7 +284,7 @@ class OffboardControl(Node):
         # z = float('nan')
         msg.position = [x, y, z]
 
-        msg.velocity = [0.0, 0.0, -self.takeoff_velocity]
+        msg.velocity = [float('nan'), float('nan'), -self.takeoff_velocity]
         msg.acceleration = [float('nan'), float('nan'), float('nan')]
         msg.yaw = float('nan')
         msg.yawspeed = float('nan')
@@ -302,30 +311,29 @@ class OffboardControl(Node):
         z = self.vehicle_local_position.z
 
         if not self.stabilized:
-            msg.position = [x, y, -self.takeoff_height]
-            msg.velocity = [0.0, 0.0, float('nan')]
+            msg.position = [self.takeoff_position_xy[0], self.takeoff_position_xy[1], -self.takeoff_height]
+            msg.velocity = [float('nan'), float('nan'), float('nan')]
             msg.yawspeed = float('nan')
         else:
-            # if (velocity_world_x ** 2) + (velocity_world_y ** 2) > 0.01:
-            #     x = float('nan')
-            #     y = float('nan')
-            # else:
-            #     velocity_world_x = 0.0
-            #     velocity_world_y = 0.0
+            if (velocity_world_x ** 2) + (velocity_world_y ** 2) > 0.01:
+                self.last_set_position.x = x
+                self.last_set_position.y = y
+            else:
+                velocity_world_x = 0.0
+                velocity_world_y = 0.0
             
-            # if velocity_world_z ** 2 > 0.01:
-            #     z = float('nan')
-            # else:
-            #     velocity_world_z = 0.0
+            if velocity_world_z ** 2 > 0.01:
+                self.last_set_position.z = z
+            else:
+                velocity_world_z = 0.0
 
-            x = x+velocity_world_x
-            y = y+velocity_world_y
-            z = z+velocity_world_z
             #x = float('nan')
             #y = float('nan')
             #z = float('nan')
 
-            msg.position = [x, y, z]
+            msg.position = [self.last_set_position.x+velocity_world_x, 
+                            self.last_set_position.y+velocity_world_y, 
+                            self.last_set_position.z+velocity_world_z]
             msg.velocity = [velocity_world_x, velocity_world_y, velocity_world_z]
             msg.yawspeed = self.yaw
 
@@ -468,6 +476,7 @@ class OffboardControl(Node):
                         if current_time - self.takeoff_time > self.stabilize_time * 1e6:
                             self.get_logger().info("Offboard, Stabilized")
                             self.stabilized = True
+                            self.last_set_position = Vector3(x=self.vehicle_local_position.x, y=self.vehicle_local_position.y, z=self.vehicle_local_position.z)
                     
                     self.publish_velocity_setpoint()
             
