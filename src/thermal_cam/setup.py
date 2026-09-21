@@ -15,7 +15,7 @@ setup(
     zip_safe=True,
     maintainer='firedrone',
     maintainer_email='firedrone@todo.todo',
-    description='TODO: Package description',
+    description='MLX90640 thermal camera publisher',
     license='TODO: License declaration',
     extras_require={
         'test': [

@@ -87,13 +87,6 @@ def generate_launch_description():
         name='odom_converter',
         parameters=[{'use_sim_time': True}]
     )
-    # scan_frame_fixer_node = Node(
-    #     package='px4_ros_com',
-    #     executable='scan_frame_fixer.py',
-    #     name='scan_frame_fixer',
-    #     parameters=[{'use_sim_time': True}]
-    # )
-
     # ---~- SLAM Toolbox Launch ----
     slam_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -150,7 +143,6 @@ def generate_launch_description():
         positional_control_node,
         urdf,
         px4_odom_converter_node,
-        # scan_frame_fixer_node,
         gazebo_to_ros_node,
         # slam_launch,
         slam_service,

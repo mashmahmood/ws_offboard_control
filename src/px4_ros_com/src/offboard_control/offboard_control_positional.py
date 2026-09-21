@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from unittest import case
-
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
@@ -238,7 +236,7 @@ class OffboardControl(Node):
         self.trueYaw = -(np.arctan2(2.0*(orientation_q[3]*orientation_q[0] + orientation_q[1]*orientation_q[2]), 
                                   1.0 - 2.0*(orientation_q[0]*orientation_q[0] + orientation_q[1]*orientation_q[1])))
 
-    def state_offboard(self):
+    def state_offboard(self, msg=None):
         if self.offboard_mode:
             return
         self.offboard_setpoint_counter = 0
