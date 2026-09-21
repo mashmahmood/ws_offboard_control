@@ -105,19 +105,6 @@ def generate_launch_description():
         output='screen',
     )
 
-    # ---- Nav2 Launch ----
-    nav_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            str(get_package_share_path('nav2_bringup') / 'launch' / 'navigation_launch.py')
-        ),
-        launch_arguments={
-            'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
-            'use_sim_time': 'true',
-            'log_level': 'error',
-        }.items(),
-    )    
-
-
     # foxglove = Node(
     #     package='foxglove_bridge',
     #     executable='foxglove_bridge',
@@ -146,6 +133,5 @@ def generate_launch_description():
         gazebo_to_ros_node,
         # slam_launch,
         slam_service,
-        nav_launch,
         #foxglove,
     ])

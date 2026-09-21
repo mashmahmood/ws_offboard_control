@@ -36,6 +36,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'params_file': str(get_package_share_path('px4_ros_com') / 'config' / 'nav2_params.yaml'),
+            'use_sim_time': use_sim,
             'log_level': 'error',
         }.items(),
     )

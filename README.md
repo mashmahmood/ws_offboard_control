@@ -18,8 +18,7 @@ ROS 2 workspace for a low-cost autonomous quadcopter that flies indoors **withou
 6. [Repository structure](#repository-structure)
 7. [How it works (per node)](#how-it-works)
 8. [Configuration files](#configuration-files)
-9. [Known issues](#known-issues)
-10. [Resources](#resources)
+9. [Resources](#resources)
 
 ---
 
@@ -221,7 +220,7 @@ Everything starts from **one script**. Each script opens a `tmux` session (`px4_
 
 | Pane | `start_sim.sh` | `start_real.sh` |
 | --- | --- | --- |
-| 0 | `offboard_control.launch.py`: PX4 SITL + Gazebo + agent + controller + Nav2 | Runs `offboard_control_drone.launch.py` **on the drone over SSH** |
+| 0 | `offboard_control.launch.py`: PX4 SITL + Gazebo + agent + controller | Runs `offboard_control_drone.launch.py` **on the drone over SSH** |
 | 1 | `control_keyboard.py` (teleop / arm) | same |
 | 2 | `offboard_control_slam.launch.py use_sim:=True`: slam_toolbox + Nav2 | same with `use_sim:=False` |
 | 3 | `offboard_control_gcs.launch.py`: RViz + thermal overlay | same |
@@ -373,9 +372,9 @@ A minimal URDF with no meshes that `robot_state_publisher` loads for the static 
 
 | Launch file | Runs on | Starts |
 | --- | --- | --- |
-| `offboard_control.launch.py` | Sim PC | `processes.py`, controller, `robot_state_publisher`, odom converter, `ros_gz_bridge` (`/scan`, `/clock`), `slam_service`, Nav2. Sets `use_sim_time:=true` |
+| `offboard_control.launch.py` | Sim PC | `processes.py`, controller, `robot_state_publisher`, odom converter, `ros_gz_bridge` (`/scan`, `/clock`), `slam_service`. Sets `use_sim_time:=true` |
 | `offboard_control_drone.launch.py` | Raspberry Pi | `MicroXRCEAgent serial /dev/serial0 @921600`, `rplidar_a1_launch.py`, `camera_ros` (OV5647, 160×120), controller, `robot_state_publisher`, odom converter, `slam_service`, `thermal_pub` |
-| `offboard_control_slam.launch.py` | GCS | `slam_toolbox` online async + Nav2. Argument `use_sim` (default `False`) |
+| `offboard_control_slam.launch.py` | GCS | `slam_toolbox` online async + Nav2, shared by sim and real. Argument `use_sim` (default `False`) sets `use_sim_time` for both |
 | `offboard_control_gcs.launch.py` | GCS | RViz (Nav2 default view), `string_to_overlay_text` for `/thermal/max_temp` |
 
 ---
@@ -384,14 +383,6 @@ A minimal URDF with no meshes that `robot_state_publisher` loads for the static 
 
 - **`config/mapper_params_online_async.yaml`** (slam_toolbox): mapping mode, `odom`/`map` frames, `base_frame: laser`, scan topic `/scan`, 5 cm resolution, 1 s map updates, 0.1 m / 0.1 rad travel thresholds, loop closing enabled.
 - **`config/nav2_params.yaml`** (Nav2): NavFn global planner, DWB local controller (`max_vel_x` 0.26 m/s), `robot_radius` 0.3 m, obstacle/voxel layers from `/scan`, static layer from the SLAM `/map`, odometry from `/odom`.
-
----
-
-## Known issues
-
-- In simulation, **Nav2 is launched twice**: by `offboard_control.launch.py` and again by `offboard_control_slam.launch.py`. The copy in the SLAM launch does not pass `use_sim_time`.
-- The start scripts hard-code `~/ws_offboard_control`, the SSH target `firedrone@10.42.0.1`, and `gnome-terminal`.
-- Position accuracy drops at higher altitude because of optical flow limits. This matches the thesis results.
 
 ---
 
